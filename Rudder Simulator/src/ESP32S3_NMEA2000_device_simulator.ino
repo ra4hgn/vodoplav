@@ -117,17 +117,17 @@ void loop() {
   }
   
   NMEA2000.ParseMessages();
-  
+
   // Диагностика: вывод отправленного CAN сообщения каждые 500 мс
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint > 500) {
     lastPrint = millis();
-    // Формат: CAN_ID(5 hex) flags(5 hex) data(16 hex)
-    Serial.printf("%05lX 0F006 ", lastN2kCANID & 0xFFFFF);
+    // Формат: CAN_ID(8 hex) флаги(5 hex) данные(16 hex) — как в CAN анализаторе
+    Serial.printf("%08lX 0FF00 ", lastN2kCANID);
     for (uint8_t i = 0; i < lastN2kDataLen; i++) {
       Serial.printf("%02X", lastN2kData[i]);
     }
-    // Добиваем нулями до 16 символов (8 байт)
+    // Добиваем FF до 8 байт (16 hex символов)
     for (uint8_t i = lastN2kDataLen; i < 8; i++) {
       Serial.print("FF");
     }
