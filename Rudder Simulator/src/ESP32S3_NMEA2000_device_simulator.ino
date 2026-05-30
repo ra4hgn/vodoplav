@@ -83,6 +83,11 @@ void setup() {
 }
 
 // *****************************************************************************
+// Хранилище для последнего отправленного N2K сообщения (для диагностики)
+static uint32_t lastN2kPGN = 0;
+static uint8_t lastN2kData[8];
+static uint8_t lastN2kDataLen = 0;
+
 void loop() {
   if (RudderScheduler.IsTime()) {
     RudderScheduler.UpdateNextTime();
@@ -94,15 +99,26 @@ void loop() {
     // Параметры: угол в радианах, instance=0, без команды направления
     SetN2kRudder(N2kMsg, rudderAngle, 0, N2kRDO_NoDirectionOrder, N2kDoubleNA);
     NMEA2000.SendMsg(N2kMsg);
+
+    // Сохраняем отправленное сообщение для вывода в диагностику
+    lastN2kPGN = N2kMsg.PGN;
+    lastN2kDataLen = N2kMsg.DataLen;
+    uint8_t copyLen = N2kMsg.DataLen < 8 ? N2kMsg.DataLen : 8;
+    memcpy(lastN2kData, N2kMsg.Data, copyLen);
   }
   
   NMEA2000.ParseMessages();
   
-  // Диагностика: вывод сырого значения АЦП каждые 500 мс
+  // Диагностика: вывод сырого значения АЦП и последнего N2K сообщения каждые 500 мс
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint > 500) {
     lastPrint = millis();
     int raw = analogRead(POT_POTENTIOMETER);
-    Serial.printf("ADC[GPIO%d] raw=%d (0-4095)\n", POT_POTENTIOMETER, raw);
+    Serial.printf("ADC[GPIO%d] raw=%d (0-4095)  N2K: PGN=%lu Len=%u [", 
+                  POT_POTENTIOMETER, raw, lastN2kPGN, lastN2kDataLen);
+    for (uint8_t i = 0; i < lastN2kDataLen; i++) {
+      Serial.printf("%02X ", lastN2kData[i]);
+    }
+    Serial.println("]");
   }
 }
