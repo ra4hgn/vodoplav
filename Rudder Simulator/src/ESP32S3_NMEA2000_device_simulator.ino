@@ -109,13 +109,11 @@ void loop() {
   
   NMEA2000.ParseMessages();
   
-  // Диагностика: вывод сырого значения АЦП и последнего N2K сообщения каждые 500 мс
+  // Диагностика: вывод последнего отправленного N2K сообщения каждые 500 мс
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint > 500) {
     lastPrint = millis();
-    int raw = analogRead(POT_POTENTIOMETER);
-    Serial.printf("ADC[GPIO%d] raw=%d (0-4095)  N2K: PGN=%lu Len=%u [", 
-                  POT_POTENTIOMETER, raw, lastN2kPGN, lastN2kDataLen);
+    Serial.printf("N2K: PGN=%lu Len=%u [", lastN2kPGN, lastN2kDataLen);
     for (uint8_t i = 0; i < lastN2kDataLen; i++) {
       Serial.printf("%02X ", lastN2kData[i]);
     }
