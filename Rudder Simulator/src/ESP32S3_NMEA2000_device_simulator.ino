@@ -90,7 +90,7 @@ void setup() {
                                );
 
   NMEA2000.SetForwardStream(&Serial);
-  NMEA2000.SetMode(tNMEA2000::N2km_SendOnly, 22);
+  NMEA2000.SetMode(tNMEA2000::N2km_NodeOnly, 22);
   NMEA2000.EnableForward(false);
   NMEA2000.ExtendTransmitMessages(TransmitMessages);
   NMEA2000.SetOnOpen(OnN2kOpen);
