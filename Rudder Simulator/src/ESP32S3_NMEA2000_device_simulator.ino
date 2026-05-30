@@ -83,8 +83,14 @@ void setup() {
 }
 
 // *****************************************************************************
+// Расчёт 29-битного CAN ID для NMEA2000
+uint32_t CalcCANID(uint8_t priority, uint8_t dp, uint8_t pf, uint8_t ps, uint8_t source) {
+  return ((uint32_t)priority << 26) | ((uint32_t)dp << 24) |
+         ((uint32_t)pf << 16) | ((uint32_t)ps << 8) | source;
+}
+
 // Хранилище для последнего отправленного N2K сообщения (для диагностики)
-static uint32_t lastN2kPGN = 0;
+static uint32_t lastN2kCANID = 0;
 static uint8_t lastN2kData[8];
 static uint8_t lastN2kDataLen = 0;
 
@@ -101,7 +107,10 @@ void loop() {
     NMEA2000.SendMsg(N2kMsg);
 
     // Сохраняем отправленное сообщение для вывода в диагностику
-    lastN2kPGN = N2kMsg.PGN;
+    lastN2kCANID = CalcCANID(N2kMsg.Priority, 1,
+                             (uint8_t)(N2kMsg.PGN >> 8),
+                             (uint8_t)N2kMsg.PGN,
+                             N2kMsg.Source);
     lastN2kDataLen = N2kMsg.DataLen;
     uint8_t copyLen = N2kMsg.DataLen < 8 ? N2kMsg.DataLen : 8;
     memcpy(lastN2kData, N2kMsg.Data, copyLen);
@@ -109,14 +118,19 @@ void loop() {
   
   NMEA2000.ParseMessages();
   
-  // Диагностика: вывод последнего отправленного N2K сообщения каждые 500 мс
+  // Диагностика: вывод отправленного CAN сообщения каждые 500 мс
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint > 500) {
     lastPrint = millis();
-    Serial.printf("N2K: PGN=%lu Len=%u [", lastN2kPGN, lastN2kDataLen);
+    // Формат: CAN_ID(5 hex) flags(5 hex) data(16 hex)
+    Serial.printf("%05lX 0F006 ", lastN2kCANID & 0xFFFFF);
     for (uint8_t i = 0; i < lastN2kDataLen; i++) {
-      Serial.printf("%02X ", lastN2kData[i]);
+      Serial.printf("%02X", lastN2kData[i]);
     }
-    Serial.println("]");
+    // Добиваем нулями до 16 символов (8 байт)
+    for (uint8_t i = lastN2kDataLen; i < 8; i++) {
+      Serial.print("FF");
+    }
+    Serial.println();
   }
 }
