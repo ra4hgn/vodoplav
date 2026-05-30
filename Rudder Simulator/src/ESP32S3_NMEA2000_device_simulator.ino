@@ -2,11 +2,11 @@
 
 ESP32S3 NMEA2000 Rudder Simulator - Симулятор руля NMEA2000 на ESP32-S3
 
-Считывает угол поворота с потенциометра (GPIO5) и отправляет
+Считывает угол поворота с потенциометра (GPIO4) и отправляет
 PGN 127245 (Rudder) в сеть NMEA2000.
 
 Аппаратная конфигурация:
-  POT (крутилка)      -> GPIO5
+  POT (крутилка)      -> GPIO4
   TWAI TX (CAN H)     -> GPIO17
   TWAI RX (CAN L)     -> GPIO16
 
@@ -20,7 +20,7 @@ PGN 127245 (Rudder) в сеть NMEA2000.
 #include "N2kMessages.h"   // Заголовочный файл для сообщений NMEA2000
 
 // Пин потенциометра (симуляция угла поворота руля)
-#define POT_POTENTIOMETER  5
+#define POT_POTENTIOMETER  4
 
 // Список PGN сообщений, которые устройство будет передавать
 const unsigned long TransmitMessages[] PROGMEM = {127245L, 0};
