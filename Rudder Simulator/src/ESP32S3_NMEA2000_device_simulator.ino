@@ -22,10 +22,6 @@ PGN 127245 (Rudder) в сеть NMEA2000.
 // Пин потенциометра (симуляция угла поворота руля)
 #define POT_POTENTIOMETER  5
 
-// Пины светодиодов для индикации
-#define LED_STATUS          15   // Светодиод статуса работы
-#define LED_ACTIVE          3    // Светодиод активности (при отправке данных)
-
 // Список PGN сообщений, которые устройство будет передавать
 const unsigned long TransmitMessages[] PROGMEM = {127245L, 0};
 
@@ -48,10 +44,6 @@ double ReadRudderAngle() {
   double angleRad = DegToRad(angleDeg);  // Конвертация в радианы для NMEA2000
 
   //Serial.printf("Rudder: pot=%d  deg=%.1f  rad=%.3f\n", pot, angleDeg, angleRad);
-  
-  digitalWrite(LED_ACTIVE, HIGH);
-  delay(5);
-  digitalWrite(LED_ACTIVE, LOW);
 
   return angleRad;
 }
@@ -63,13 +55,6 @@ void setup() {
   // Настройка ADC для ESP32-S3
   analogReadResolution(12);  // 12 бит (0-4095)
   analogSetPinAttenuation(POT_POTENTIOMETER, ADC_11db);  // Диапазон 0-3.3В для конкретного пина
-
-  // Настройка пинов светодиодов
-  pinMode(LED_STATUS, OUTPUT);
-  pinMode(LED_ACTIVE, OUTPUT);
-  
-  digitalWrite(LED_STATUS, LOW);
-  digitalWrite(LED_ACTIVE, LOW);
 
   //Serial.println("ESP32 S3 NMEA2000 Rudder Simulator");
   //Serial.println("PGN 127245 - Rudder position");
@@ -95,8 +80,6 @@ void setup() {
   NMEA2000.ExtendTransmitMessages(TransmitMessages);
   NMEA2000.SetOnOpen(OnN2kOpen);
   NMEA2000.Open();
-
-  digitalWrite(LED_STATUS, HIGH);  // Индикация работы
 }
 
 // *****************************************************************************
